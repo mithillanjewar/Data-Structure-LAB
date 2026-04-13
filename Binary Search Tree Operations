@@ -1,0 +1,55 @@
+#include <stdio.h>
+void postorderTraversal(struct TreeNode* root) {
+    if (root == NULL) {
+        printf("The tree is empty\n");
+        return;
+    }
+    postorderPrint(root);
+    printf("\n");
+}
+
+/* Minimum node in subtree */
+static struct TreeNode* minValueNode(struct TreeNode* node) {
+    struct TreeNode* cur = node;
+    while (cur != NULL && cur->left != NULL) cur = cur->left;
+    return cur;
+}
+
+/* Delete one occurrence; set *found = 1 if deleted */
+struct TreeNode* deleteNode(struct TreeNode* root, int key, int* found) {
+    if (root == NULL) return NULL;
+
+    if (key < root->val) {
+        root->left = deleteNode(root->left, key, found);
+    } else if (key > root->val) {
+        root->right = deleteNode(root->right, key, found);
+    } else {
+        *found = 1;
+
+        /* 0 or 1 child */
+        if (root->left == NULL) {
+            struct TreeNode* temp = root->right;
+            free(root);
+            return temp;
+        } else if (root->right == NULL) {
+            struct TreeNode* temp = root->left;
+            free(root);
+            return temp;
+        }
+
+        /* 2 children: inorder successor (min in right subtree) */
+        struct TreeNode* succ = minValueNode(root->right);
+        root->val = succ->val;
+
+        /* delete successor node */
+        root->right = deleteNode(root->right, succ->val, found);
+    }
+    return root;
+}
+
+void freeTree(struct TreeNode* root) {
+    if (root == NULL) return;
+    freeTree(root->left);
+    freeTree(root->right);
+    free(root);
+}
